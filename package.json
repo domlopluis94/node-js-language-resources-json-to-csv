@@ -1,0 +1,27 @@
+{
+  "name": "js-language-resources-json-to-csv",
+  "version": "1.0.0",
+  "description": "Control your Languege resources files",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/domlopluis94/node-js-language-resources-json-to-csv.git"
+  },
+  "author": "Luis Dominguez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/domlopluis94/node-js-language-resources-json-to-csv/issues"
+  },
+  "homepage": "https://github.com/domlopluis94/node-js-language-resources-json-to-csv#readme",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^8.1.0",
+    "json-2-csv": "^3.14.4"
+  },
+  "bin": {
+    "langFiles": "index.js"
+  }
+}
