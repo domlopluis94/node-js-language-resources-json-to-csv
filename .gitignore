@@ -103,4 +103,8 @@ dist
 # TernJS port file
 .tern-port
 
-testDir
+testDir/test1/resources.csv
+testDir/test2/EN.json
+testDir/test2/ES.json
+testDir/test2/description.json
+testDir/test2/FullLang.json
