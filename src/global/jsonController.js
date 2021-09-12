@@ -7,7 +7,9 @@ module.exports ={
     async unifyFilesIntoJson(filesNames,workingDir){
         return new Promise(async(Resolve,Rejects)=>{
             //mirar primero si description esta lleno
-            var fullJson = await this.getJsonFromFile("Description.json", workingDir);
+            var DescJson = await this.getJsonFromFile("Description.json", workingDir);
+            var fullJson = {};
+            fullJson = await this.mixJson(fullJson,DescJson,"Description");
             //si esta lleno lo validamos con los ficheros , sino usamos EN como base
             let ENjson = await this.getJsonFromFile("EN.json", workingDir);
             fullJson = await this.mixJson(fullJson,ENjson,"EN");
@@ -39,19 +41,20 @@ module.exports ={
     async mixJson(jsonFather,jsonSon,filename){
         return new Promise((Resolve,Rejects)=>{
             console.log(jsonFather);
+            var $this = this;
             Object.keys(jsonSon).forEach(function(key) {
-                if (jsonFather[key] != undefined ) {
-                    if (jsonFather[key][filename] != undefined) {
-                        jsonFather[key][filename] = jsonSon[key];
-                    }else{
-                        jsonFather[key][filename] = jsonSon[key];
-                    }   
-                }else{
-        
-                    jsonFather[key] = {
-                        'description':''
-                    };
-                    jsonFather[key][filename] = jsonSon[key];
+                console.log(typeof jsonSon[key]);
+                switch(typeof jsonSon[key]){
+                    case "string":
+                        jsonFather = $this.insertKeyValue(jsonFather,filename,key,jsonSon[key]);
+                        break;
+                    case "object":
+                        jsonFather = $this.insertSons(jsonFather,filename,key,jsonSon[key]);
+                        break;
+                    case "array":
+                        jsonFather = $this.insertArray(jsonFather,filename,key,jsonSon[key]);
+                        break;
+                    default:
                 }
             });
             Object.keys(jsonFather).forEach(function(key) {
@@ -62,6 +65,64 @@ module.exports ={
             Resolve(jsonFather);
         });
         
+    },
+
+    insertKeyValue(jsonFather,filename,key,value ){
+        if (jsonFather[key] != undefined ) {
+            if (jsonFather[key][filename] != undefined) {
+                jsonFather[key][filename] = value;
+            }else{
+                jsonFather[key][filename] = {};
+                jsonFather[key][filename] = value;
+            }   
+        }else{
+            if (filename == "Description") {
+                jsonFather[key] = {};
+            }else{
+                jsonFather[key] = {
+                    'description':''
+                };
+            }
+            jsonFather[key][filename] = value;
+        }
+        return jsonFather;
+    },
+
+    insertSons(jsonFather,filename,key,jsonSon){
+        var $this = this;
+        Object.keys(jsonSon).forEach(function(secondkey) {
+            switch(typeof jsonSon[secondkey]){
+                case "string":
+                    jsonFather = $this.insertKeyValue(jsonFather,filename,`${key}.${secondkey}`,jsonSon[secondkey]);
+                    break;
+                case "object":
+                    jsonFather = $this.insertSons(jsonFather,filename,`${key}.${secondkey}`,jsonSon[secondkey]);
+                    break;
+                case "array":
+                    jsonFather = $this.insertArray(jsonFather,filename,`${key}.${secondkey}`,jsonSon[secondkey]);
+                    break;
+                default:
+                    console.log(typeof jsonSon[secondkey]);
+            }
+        });
+        return jsonFather;
+    },
+
+    insertArray(jsonFather,filename,key,jsonSon){
+        if (jsonFather[key] != undefined ) {
+            if (jsonFather[key][filename] != undefined) {
+                jsonFather[key][filename] = value;
+            }else{
+                jsonFather[key][filename] = value;
+            }   
+        }else{
+
+            jsonFather[key] = {
+                'description':''
+            };
+            jsonFather[key][filename] = jsonSon[key];
+        }
+        return jsonFather;
     },
 
     json2csv(json,workingDir){
@@ -119,17 +180,31 @@ module.exports ={
         fs.writeFileSync(fileName, data);
     },
 
+
+    /**
+     * 
+     * @param {*} fullJson 
+     * @returns 
+     */
     async splitJsonCsvInJsonFiles(fullJson){
+        var $this = this;
         return new Promise((Resolve,Rejects)=>{
             let nOfKeys = Object.keys(fullJson[0]).length;
             let jsonSplited = [];
             fullJson.forEach((element) =>{
-                Object.keys(element).forEach(function(key) {
+                Object.keys(element).forEach( async function(key) {
                     if (key != "key") {
                         let fileName = `${key}.json`
                         if (jsonSplited[fileName] == undefined) {
                             jsonSplited[fileName] = {};
-                            jsonSplited[fileName][element.key] = element[key];
+                        }
+                        if (element.key.includes(".")) {
+                            try {
+                                jsonSplited[fileName] = await $this.insertSonsonJson(jsonSplited[fileName],element.key,element[key]);
+                            } catch (error) {
+                                console.error(error);
+                            }
+                            
                         } else {
                             jsonSplited[fileName][element.key] = element[key];
                         }   
@@ -137,6 +212,26 @@ module.exports ={
                 });
             })
             Resolve(jsonSplited);
+        });
+    },
+
+    async insertSonsonJson(fullJson,sonsNames,value){
+        return new Promise(async (Resolve,Rejects)=>{
+            let sons = sonsNames.split(".");
+            if (sons.length > 1) {
+                if (fullJson[sons[0]] == undefined) {
+                    if (!isNaN(sons[1])) {
+                        fullJson[sons[0]] = [];
+                    } else {
+                        fullJson[sons[0]] = {};
+                    }     
+                }
+                sonsNames = sonsNames.replace(`${sons[0]}.`,"");
+                fullJson[sons[0]] = await this.insertSonsonJson(fullJson[sons[0]],sonsNames,value); 
+            }else{
+                fullJson[sons[0]] = value;
+            }
+            Resolve(fullJson);
         });
     }
 

@@ -108,3 +108,13 @@ testDir/test2/EN.json
 testDir/test2/ES.json
 testDir/test2/description.json
 testDir/test2/FullLang.json
+testDir/test3/resources.csv
+testDir/test4/EN.json
+testDir/test4/ES.json
+testDir/test4/description.json
+testDir/test4/FullLang.json
+testDir/testlocal
+testDir/.DS_Store
+testDir/test3/.DS_Store
+.DS_Store
+testDir/.DS_Store

@@ -1,0 +1,15 @@
+{
+    "test1":"hello",
+    "testindex":{
+        "testpartial": {
+            "testfinal":"world"
+        }
+    },
+    "welcome":{
+        "firstmessage":[
+            "Hi",
+            "Hello",
+            "World"    
+        ]
+    }
+}
